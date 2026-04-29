@@ -10,10 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = {
-    "http://localhost:5173",
-    "https://cuddly-adventure-g4r5446p64qwcvvxq-5173.app.github.dev"
-})
+
 public class ProductController {
 
     @Autowired
@@ -30,15 +27,15 @@ public class ProductController {
     // ===========================
     // ✅ CREATE PRODUCT (MULTI IMAGE)
     // ===========================
-    @PostMapping(consumes = "multipart/form-data")
-    public Product createProduct(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam double price,
-            @RequestParam String category,
-            @RequestParam int stock,
-            @RequestParam("images") List<MultipartFile> images
-    ) {
+@PostMapping(consumes = "multipart/form-data")
+public Product createProduct(
+        @RequestParam String name,
+        @RequestParam String description,
+        @RequestParam double price,
+        @RequestParam String category,
+        @RequestParam int stock,
+        @RequestParam(value = "images", required = false) List<MultipartFile> images
+) {
 
         Product product = new Product();
 

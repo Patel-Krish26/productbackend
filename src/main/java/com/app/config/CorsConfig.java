@@ -2,28 +2,33 @@ package com.app.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.*;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 @Configuration
 public class CorsConfig {
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
+    public CorsFilter corsFilter() {
 
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
+        CorsConfiguration config = new CorsConfiguration();
 
-                registry.addMapping("/**")
-                        .allowedOrigins(
-                                "http://localhost:5173",   // React local
-                                "http://127.0.0.1:5173"
-                        )
-                        .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+        // ✅ IMPORTANT FIX
+        config.setAllowCredentials(true);
+
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:5173",
+                "https://*.github.dev"
+        ));
+
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
     }
 }

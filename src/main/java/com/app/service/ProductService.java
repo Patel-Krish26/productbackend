@@ -21,20 +21,23 @@ public class ProductService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    // 🔥 CREATE PRODUCT
-    public Product saveProduct(Product product, List<MultipartFile> images) {
+    // CREATE PRODUCT
+public Product saveProduct(Product product, List<MultipartFile> images) {
 
-        try {
-            List<ProductImage> imageList = new ArrayList<>();
+    try {
+        List<ProductImage> imageList = new ArrayList<>();
 
+        if (images != null) {
             for (MultipartFile file : images) {
 
-                if (file.isEmpty()) continue;
+                if (file == null || file.isEmpty()) continue;
 
                 String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-                File dest = new File(uploadDir + fileName);
+                File dest = new File(uploadDir, fileName);
                 dest.getParentFile().mkdirs();
+
+                System.out.println("Saving file to: " + dest.getAbsolutePath());
 
                 file.transferTo(dest);
 
@@ -44,18 +47,19 @@ public class ProductService {
 
                 imageList.add(img);
             }
-
-            product.setImages(imageList);
-
-            return productRepository.save(product);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error saving product");
         }
-    }
 
-    // ✅ FIXED METHOD (THIS WAS MISSING)
+        product.setImages(imageList);
+
+        return productRepository.save(product);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Error saving product");
+    }
+}
+
+    // ✅ THIS MUST BE OUTSIDE ABOVE METHOD
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }

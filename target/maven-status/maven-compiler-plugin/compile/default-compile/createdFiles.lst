@@ -7,4 +7,3 @@ com/app/service/ProductService.class
 com/app/controller/ProductController.class
 com/app/service/FileStorageService.class
 com/app/config/WebConfig.class
-com/app/config/CorsConfig$1.class

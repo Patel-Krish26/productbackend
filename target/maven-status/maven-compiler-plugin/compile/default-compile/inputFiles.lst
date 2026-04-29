@@ -1,2 +1,9 @@
-/workspaces/productbackend/src/main/java/com/example/productbackend/ProductbackendApplication.java
-/workspaces/productbackend/src/main/java/com/example/productbackend/controller/TestController.java
+/workspaces/productbackend/src/main/java/com/app/service/FileStorageService.java
+/workspaces/productbackend/src/main/java/com/app/controller/ProductController.java
+/workspaces/productbackend/src/main/java/com/app/service/ProductService.java
+/workspaces/productbackend/src/main/java/com/app/productbackend/ProductbackendApplication.java
+/workspaces/productbackend/src/main/java/com/app/entity/ProductImage.java
+/workspaces/productbackend/src/main/java/com/app/config/WebConfig.java
+/workspaces/productbackend/src/main/java/com/app/repository/ProductRepository.java
+/workspaces/productbackend/src/main/java/com/app/config/CorsConfig.java
+/workspaces/productbackend/src/main/java/com/app/entity/Product.java

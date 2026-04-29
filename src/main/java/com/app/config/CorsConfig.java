@@ -15,7 +15,6 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ IMPORTANT FIX
         config.setAllowCredentials(true);
 
         config.setAllowedOriginPatterns(Arrays.asList(

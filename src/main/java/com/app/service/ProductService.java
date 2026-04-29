@@ -34,13 +34,15 @@ public Product saveProduct(Product product, List<MultipartFile> images) {
 
                 String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-                File dest = new File(uploadDir, fileName);
-                dest.getParentFile().mkdirs();
+                File uploadPath = new File(uploadDir);
 
-                System.out.println("Saving file to: " + dest.getAbsolutePath());
+                if (!uploadPath.exists()) {
+                    uploadPath.mkdirs();
+                }
 
+                File dest = new File(uploadPath, fileName);
                 file.transferTo(dest);
-
+                
                 ProductImage img = new ProductImage();
                 img.setImageUrl("/uploads/" + fileName);
                 img.setProduct(product);

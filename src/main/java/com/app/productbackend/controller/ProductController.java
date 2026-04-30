@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
 
 @RestController
@@ -23,6 +25,32 @@ public class ProductController {
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
+
+
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable int id) {
+        productService.deleteProduct(id);
+    }
+
+
+@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<?> updateProduct(
+                @PathVariable int id,
+                @RequestParam String name,
+                @RequestParam String description,
+                @RequestParam double price,
+                @RequestParam String category,
+                @RequestParam int stock,
+                @RequestParam(value = "images", required = false) List<MultipartFile> images
+        ) {
+
+            Product updatedProduct = productService.updateProduct(
+                    id, name, description, price, category, stock, images
+            );
+
+            return ResponseEntity.ok(updatedProduct);
+        }
+
 
     // ===========================
     // ✅ CREATE PRODUCT (MULTI IMAGE)

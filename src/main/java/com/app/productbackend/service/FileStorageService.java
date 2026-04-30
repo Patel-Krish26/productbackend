@@ -10,26 +10,28 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    // MUST match WebConfig: file:uploads/
-    private final String uploadDir = "uploads/";
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/";
 
     public String saveFile(MultipartFile file) throws IOException {
 
-        // Create folder if not exists
+        // create folder if not exists
         File directory = new File(uploadDir);
         if (!directory.exists()) {
-            directory.mkdirs();
+            boolean created = directory.mkdirs();
+            if (!created) {
+                throw new IOException("Could not create upload directory");
+            }
         }
 
-        // Generate unique file name
+        // generate unique name
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         File targetFile = new File(uploadDir + fileName);
 
-        // Save file
+        // save file
         file.transferTo(targetFile);
 
-        // Return URL path (used by frontend)
+        // return URL path
         return "/uploads/" + fileName;
     }
 }

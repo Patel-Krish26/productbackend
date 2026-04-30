@@ -11,10 +11,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
 
-        // Serve files from "uploads" folder
+        // ✅ IMPORTANT: ABSOLUTE PATH
+        String uploadPath = System.getProperty("user.dir") + "/uploads/";
+
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/")
-                .setCachePeriod(3600) // cache for 1 hour (optional)
+                .addResourceLocations("file:" + uploadPath)
+                .setCachePeriod(3600)
                 .resourceChain(true);
     }
 }

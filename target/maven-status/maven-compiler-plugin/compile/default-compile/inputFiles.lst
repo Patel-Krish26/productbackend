@@ -3,6 +3,7 @@
 /workspaces/productbackend/src/main/java/com/app/productbackend/service/ProductService.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/entity/Product.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/ProductbackendApplication.java
+/workspaces/productbackend/src/main/java/com/app/productbackend/repository/ImageRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/repository/ProductRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/entity/ProductImage.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/controller/ProductController.java

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.data.domain.*;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +20,43 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // ✅ FIXED upload path (use application.properties value)
     private final String uploadDir = "/workspaces/productbackend/uploads/";
+
+    // =========================
+    // 🔥 FILTER + PAGINATION (FIXED)
+    // =========================
+    public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
+
+        String nameFilter = (keyword == null) ? "" : keyword;
+        String categoryFilter = (category == null) ? "" : category;
+
+        Page<Product> page = productRepository
+                .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
+                        nameFilter,
+                        categoryFilter,
+                        pageable
+                );
+
+        // ✅ FIX: if requested page > total pages → return empty page safely
+        if (pageable.getPageNumber() >= page.getTotalPages() && page.getTotalPages() > 0) {
+            Pageable newPage = PageRequest.of(page.getTotalPages() - 1, pageable.getPageSize());
+            return productRepository
+                    .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
+                            nameFilter,
+                            categoryFilter,
+                            newPage
+                    );
+        }
+
+        return page;
+    }
+
+    // =========================
+    // ✅ PAGINATION ONLY
+    // =========================
+    public Page<Product> getProductsWithPagination(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
 
     // =========================
     // ✅ CREATE PRODUCT
@@ -53,24 +90,22 @@ public class ProductService {
             }
 
             product.setImages(imageList);
-
             return productRepository.save(product);
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error saving product: " + e.getMessage());
         }
     }
 
     // =========================
-    // ✅ DELETE PRODUCT
+    // DELETE
     // =========================
     public void deleteProduct(int id) {
         productRepository.deleteById(id);
     }
 
     // =========================
-    // ✅ UPDATE PRODUCT (FIXED)
+    // UPDATE
     // =========================
     public Product updateProduct(int id,
                                  String name,
@@ -81,21 +116,17 @@ public class ProductService {
                                  List<MultipartFile> images) {
 
         try {
-
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            // ✅ update fields
             product.setName(name);
             product.setDescription(description);
             product.setPrice(price);
             product.setCategory(category);
             product.setStock(stock);
 
-            // ✅ IMPORTANT FIX: handle images safely
             if (images != null && !images.isEmpty()) {
 
-                // ❗ clear old images (JPA handles delete because orphanRemoval=true)
                 product.getImages().clear();
 
                 List<ProductImage> newImages = new ArrayList<>();
@@ -122,13 +153,26 @@ public class ProductService {
             return productRepository.save(product);
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error updating product: " + e.getMessage());
         }
     }
 
     // =========================
-    // ✅ GET ALL
+    // SEARCH
+    // =========================
+    public List<Product> searchProducts(String keyword) {
+        return productRepository.findByNameContainingIgnoreCase(keyword);
+    }
+
+    // =========================
+    // CATEGORY
+    // =========================
+    public List<Product> getByCategory(String category) {
+        return productRepository.findByCategoryIgnoreCase(category);
+    }
+
+    // =========================
+    // GET ALL
     // =========================
     public List<Product> getAllProducts() {
         return productRepository.findAll();

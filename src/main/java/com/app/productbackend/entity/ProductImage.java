@@ -14,10 +14,8 @@ public class ProductImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "image_url")
     private String imageUrl;
 
-    // Many images → one product
     @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonBackReference

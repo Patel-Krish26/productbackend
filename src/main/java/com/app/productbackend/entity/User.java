@@ -1,4 +1,4 @@
-package com.app.entity;
+package com.app.productbackend.entity;
 
 import lombok.Data;
 

@@ -1,8 +1,8 @@
-package com.app.service;
+package com.app.productbackend.service;
 
-import com.app.entity.User;
-import com.app.repository.UserRepository;
-import com.app.security.JwtUtil;
+import com.app.productbackend.entity.User;
+import com.app.productbackend.repository.UserRepository;
+import com.app.productbackend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

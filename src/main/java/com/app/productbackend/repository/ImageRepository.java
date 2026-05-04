@@ -1,6 +1,6 @@
-package com.app.repository;
+package com.app.productbackend.repository;
 
-import com.app.entity.ProductImage;
+import com.app.productbackend.entity.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

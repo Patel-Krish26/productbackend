@@ -1,4 +1,4 @@
-package com.app.config;
+package com.app.productbackend.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;

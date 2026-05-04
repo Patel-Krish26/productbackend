@@ -1,12 +1,13 @@
-package com.app.config;
+package com.app.productbackend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
@@ -16,29 +17,13 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow cookies / authorization headers
         config.setAllowCredentials(true);
 
-        // Allowed frontend origins
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:5173",
-                "https://*.github.dev"
-        ));
+        // 🔥 FRONTEND URL (VERY IMPORTANT)
+        config.setAllowedOriginPatterns(List.of("*")); // or your frontend URL
 
-        // Allow all headers
-        config.setAllowedHeaders(Arrays.asList("*"));
-
-        // Allow all required HTTP methods
-        config.setAllowedMethods(Arrays.asList(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "OPTIONS"
-        ));
-
-        // (Optional but recommended) expose headers if needed
-        config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

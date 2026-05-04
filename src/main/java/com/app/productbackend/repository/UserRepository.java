@@ -1,6 +1,6 @@
-package com.app.repository;
+package com.app.productbackend.repository;
 
-import com.app.entity.User;
+import com.app.productbackend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

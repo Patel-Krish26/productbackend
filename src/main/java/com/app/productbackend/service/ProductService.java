@@ -1,8 +1,8 @@
-package com.app.service;
+package com.app.productbackend.service;
 
-import com.app.entity.Product;
-import com.app.entity.ProductImage;
-import com.app.repository.ProductRepository;
+import com.app.productbackend.entity.Product;
+import com.app.productbackend.entity.ProductImage;
+import com.app.productbackend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

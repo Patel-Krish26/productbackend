@@ -1,7 +1,7 @@
-package com.app.controller;
+package com.app.productbackend.controller;
 
-import com.app.entity.Product;
-import com.app.service.ProductService;
+import com.app.productbackend.entity.Product;
+import com.app.productbackend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

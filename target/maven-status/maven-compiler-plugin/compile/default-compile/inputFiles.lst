@@ -1,5 +1,5 @@
-/workspaces/productbackend/src/main/java/com/app/productbackend/config/SecurityConfig.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/service/ProductService.java
+/workspaces/productbackend/src/main/java/com/app/productbackend/security/SecurityConfig.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/repository/ImageRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/repository/ProductRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/entity/ProductImage.java

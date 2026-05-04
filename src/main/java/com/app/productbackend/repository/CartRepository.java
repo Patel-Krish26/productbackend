@@ -1,29 +1,13 @@
 package com.app.productbackend.repository;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import com.app.productbackend.entity.Cart;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Map;
 
-@Repository
-public class CartRepository {
+public interface CartRepository extends JpaRepository<Cart, Integer> {
 
-    private final JdbcTemplate jdbc;
+    Cart findByUser_IdAndProduct_Id(int userId, int productId);
 
-    public CartRepository(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-    }
-
-    public void addToCart(int userId, int productId, int qty) {
-        jdbc.update("EXEC sp_cart ?, ?, ?", userId, productId, qty);
-    }
-
-    public List<Map<String, Object>> getCart(int userId) {
-        return jdbc.queryForList("EXEC sp_cart_get ?", userId);
-    }
-
-    public void remove(int userId, int productId) {
-        jdbc.update("EXEC sp_cart_remove ?, ?", userId, productId);
-    }
+    List<Cart> findByUser_Id(int userId);
 }

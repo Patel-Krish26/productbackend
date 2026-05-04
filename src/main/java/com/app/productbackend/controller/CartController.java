@@ -1,44 +1,38 @@
 package com.app.productbackend.controller;
 
+import com.app.productbackend.entity.Cart;
 import com.app.productbackend.service.CartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart")
-@CrossOrigin
+@CrossOrigin("*")
 public class CartController {
 
-    private final CartService service;
+    @Autowired
+    private CartService cartService;
 
-    public CartController(CartService service) {
-        this.service = service;
+    // ✅ ADD TO CART
+    @PostMapping("/add")
+    public Cart addToCart(@RequestParam int userId,
+                          @RequestParam int productId) {
+        return cartService.addToCart(userId, productId);
     }
 
-    // ➕ ADD
-    @PostMapping("/add/{productId}")
-    public String add(@PathVariable int productId,
-                      @RequestHeader("userId") int userId) {
-
-        service.add(userId, productId);
-        return "Added";
+    // ✅ GET CART
+    @GetMapping("/{userId}")
+    public List<Cart> getCart(@PathVariable int userId) {
+        return cartService.getCart(userId);
     }
 
-    // 📦 GET
-    @GetMapping
-    public List<Map<String, Object>> get(
-            @RequestHeader("userId") int userId) {
-
-        return service.get(userId);
-    }
-
-    // ❌ REMOVE
-    @DeleteMapping("/{productId}")
-    public String remove(@PathVariable int productId,
-                         @RequestHeader("userId") int userId) {
-
-        service.remove(userId, productId);
+    // ✅ REMOVE
+    @DeleteMapping("/remove")
+    public String remove(@RequestParam int userId,
+                         @RequestParam int productId) {
+        cartService.removeFromCart(userId, productId);
         return "Removed";
     }
 }

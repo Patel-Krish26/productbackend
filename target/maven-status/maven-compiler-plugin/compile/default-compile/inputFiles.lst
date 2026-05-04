@@ -1,3 +1,4 @@
+/workspaces/productbackend/src/main/java/com/app/productbackend/entity/Cart.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/service/ProductService.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/security/SecurityConfig.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/controller/CartController.java
@@ -10,7 +11,6 @@
 /workspaces/productbackend/src/main/java/com/app/productbackend/controller/AuthController.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/repository/CartRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/security/JwtFilter.java
-/workspaces/productbackend/src/main/java/com/app/productbackend/entity/CartItem.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/service/FileStorageService.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/repository/UserRepository.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/entity/Product.java

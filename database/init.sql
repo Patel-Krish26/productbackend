@@ -36,3 +36,4 @@ CREATE TABLE Cart (
     FOREIGN KEY (product_id) REFERENCES Products(id)
 );
 
+GO

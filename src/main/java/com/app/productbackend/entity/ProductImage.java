@@ -1,23 +1,26 @@
 package com.app.productbackend.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.Data;
-
+import lombok.*;
 import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
-@Table(name = "product_images")
-@Data
+@Table(name = "ProductImages")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-    @JsonBackReference
+    @JsonBackReference   // 🔥 IMPORTANT
     private Product product;
 }

@@ -20,15 +20,16 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    private final String uploadDir = "/workspaces/productbackend/uploads/";
+    // ✅ Dynamic path (works everywhere)
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/";
 
     // =========================
-    // 🔥 FILTER + PAGINATION (FIXED)
+    // 🔍 FILTER + PAGINATION
     // =========================
     public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
 
-        String nameFilter = (keyword == null) ? "" : keyword;
-        String categoryFilter = (category == null) ? "" : category;
+        String nameFilter = (keyword == null || keyword.isBlank()) ? "" : keyword;
+        String categoryFilter = (category == null || category.isBlank()) ? "" : category;
 
         Page<Product> page = productRepository
                 .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
@@ -37,7 +38,7 @@ public class ProductService {
                         pageable
                 );
 
-        // ✅ FIX: if requested page > total pages → return empty page safely
+        // ✅ prevent invalid page crash
         if (pageable.getPageNumber() >= page.getTotalPages() && page.getTotalPages() > 0) {
             Pageable newPage = PageRequest.of(page.getTotalPages() - 1, pageable.getPageSize());
             return productRepository
@@ -52,14 +53,14 @@ public class ProductService {
     }
 
     // =========================
-    // ✅ PAGINATION ONLY
+    // 📄 PAGINATION
     // =========================
     public Page<Product> getProductsWithPagination(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
     // =========================
-    // ✅ CREATE PRODUCT
+    // ➕ CREATE PRODUCT
     // =========================
     public Product saveProduct(Product product, List<MultipartFile> images) {
 
@@ -93,19 +94,19 @@ public class ProductService {
             return productRepository.save(product);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error saving product: " + e.getMessage());
+            throw new RuntimeException("Error saving product", e);
         }
     }
 
     // =========================
-    // DELETE
+    // ❌ DELETE
     // =========================
     public void deleteProduct(int id) {
         productRepository.deleteById(id);
     }
 
     // =========================
-    // UPDATE
+    // 🔄 UPDATE PRODUCT
     // =========================
     public Product updateProduct(int id,
                                  String name,
@@ -119,17 +120,21 @@ public class ProductService {
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
+            // update fields
             product.setName(name);
             product.setDescription(description);
             product.setPrice(price);
             product.setCategory(category);
             product.setStock(stock);
 
+            // ✅ safe init
+            if (product.getImages() == null) {
+                product.setImages(new ArrayList<>());
+            }
+
             if (images != null && !images.isEmpty()) {
 
                 product.getImages().clear();
-
-                List<ProductImage> newImages = new ArrayList<>();
 
                 for (MultipartFile file : images) {
 
@@ -144,35 +149,39 @@ public class ProductService {
                     img.setImageUrl("/uploads/" + fileName);
                     img.setProduct(product);
 
-                    newImages.add(img);
+                    product.getImages().add(img);
                 }
-
-                product.getImages().addAll(newImages);
             }
 
             return productRepository.save(product);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error updating product: " + e.getMessage());
+            throw new RuntimeException("Error updating product", e);
         }
     }
 
     // =========================
-    // SEARCH
+    // 🔍 SEARCH
     // =========================
     public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return productRepository.findAll();
+        }
         return productRepository.findByNameContainingIgnoreCase(keyword);
     }
 
     // =========================
-    // CATEGORY
+    // 📦 CATEGORY
     // =========================
     public List<Product> getByCategory(String category) {
+        if (category == null || category.isBlank()) {
+            return productRepository.findAll();
+        }
         return productRepository.findByCategoryIgnoreCase(category);
     }
 
     // =========================
-    // GET ALL
+    // 📋 GET ALL
     // =========================
     public List<Product> getAllProducts() {
         return productRepository.findAll();

@@ -1,12 +1,15 @@
 package com.app.productbackend.entity;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
-@Data
+@Table(name = "Users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -14,12 +17,7 @@ public class User {
     private int id;
 
     private String name;
-
-    @Column(unique = true)
     private String email;
-
     private String password;
-
-    // ✅ NEW FIELD
-    private String role; // "USER" or "ADMIN"
+    private String role;
 }

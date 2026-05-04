@@ -19,3 +19,4 @@
 /workspaces/productbackend/src/main/java/com/app/productbackend/controller/ProductController.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/security/JwtUtil.java
 /workspaces/productbackend/src/main/java/com/app/productbackend/config/WebConfig.java
+/workspaces/productbackend/src/main/java/com/app/productbackend/dto/CartResponse.java

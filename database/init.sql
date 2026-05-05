@@ -55,5 +55,6 @@ CREATE TABLE OrderItems (
     price DECIMAL(10,2),
     FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(id)
+    image_url NVARCHAR(255);
 );
 GO

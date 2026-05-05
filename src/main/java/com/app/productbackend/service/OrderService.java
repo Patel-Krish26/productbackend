@@ -39,25 +39,32 @@ public class OrderService {
         List<OrderItem> items = new ArrayList<>();
         double total = 0;
 
-        for (Cart cart : cartItems) {
+            for (Cart cart : cartItems) {
 
-            Product p = cart.getProduct();
+                Product p = productRepository.findById(cart.getProduct().getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            OrderItem item = new OrderItem();
-            item.setProductId(p.getId());
-            item.setProductName(p.getName());
-            item.setPrice(p.getPrice());
-            item.setQuantity(cart.getQuantity());
-            item.setOrder(order);
+                // 🔥 FORCE LOAD IMAGES (CRITICAL)
+                if (p.getImages() != null) {
+                    p.getImages().size();
+                }
 
-            total += p.getPrice() * cart.getQuantity();
+                OrderItem item = new OrderItem();
+                item.setProductId(p.getId());
+                item.setProductName(p.getName());
+                item.setPrice(p.getPrice());
+                item.setQuantity(cart.getQuantity());
+                item.setOrder(order);
 
-            items.add(item);
+                item.setImageUrl(
+                    (p.getImages() != null && !p.getImages().isEmpty())
+                        ? p.getImages().get(0).getImageUrl()
+                        : "/uploads/default.png"
+                );
 
-            // optional stock reduce
-            p.setStock(p.getStock() - cart.getQuantity());
-            productRepository.save(p);
-        }
+                total += p.getPrice() * cart.getQuantity();
+                items.add(item);
+            }
 
         order.setItems(items);
         order.setTotalAmount(total);

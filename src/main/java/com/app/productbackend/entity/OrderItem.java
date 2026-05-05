@@ -22,7 +22,9 @@ public class OrderItem {
     private String productName;
     private double price;
     private int quantity;
-
+    
+@Transient
+private String imageUrl;
 
 @JsonBackReference
 @ManyToOne

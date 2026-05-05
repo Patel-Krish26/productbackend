@@ -25,13 +25,6 @@ public class CartService {
     @Autowired
     private UserRepository userRepo;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    // ✅ ADD TO CART
     public Cart addToCart(int userId, int productId) {
 
         User user = userRepo.findById(userId)
@@ -40,7 +33,6 @@ public class CartService {
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // 🔥 FIXED QUERY
         Cart existing = cartRepo.findByUserIdAndProductId(userId, productId);
 
         if (existing != null) {
@@ -56,39 +48,62 @@ public class CartService {
         return cartRepo.save(cart);
     }
 
-    // ✅ GET CART
-public List<CartResponse> getCart(int userId) {
+    public List<CartResponse> getCart(int userId) {
 
-    List<Cart> cartList = cartRepository.findByUserId(userId);
+        List<Cart> cartList = cartRepo.findByUserId(userId);
 
-    return cartList.stream().map(cart -> {
+        return cartList.stream().map(cart -> {
 
-        Product p = cart.getProduct(); // ✅ FIXED
+            Product p = cart.getProduct();
 
-        CartResponse res = new CartResponse();
+            CartResponse res = new CartResponse();
 
-        res.setProductId(p.getId());
-        res.setQuantity(cart.getQuantity());
+            res.setProductId(p.getId());
+            res.setQuantity(cart.getQuantity());
 
-        if (p != null) {
-            res.setProductName(p.getName());
-            res.setPrice(p.getPrice());
+            if (p != null) {
+                res.setProductName(p.getName());
+                res.setPrice(p.getPrice());
 
-            if (p.getImages() != null && !p.getImages().isEmpty()) {
-                res.setImage(p.getImages().get(0).getImageUrl());
+                if (p.getImages() != null && !p.getImages().isEmpty()) {
+                    res.setImage(p.getImages().get(0).getImageUrl());
+                }
             }
-        }
 
-        return res;
+            res.setTotalPrice(cart.getQuantity() * p.getPrice());
 
-    }).collect(Collectors.toList()); // ✅ FIXED
-}
+            return res;
 
-    // ✅ REMOVE
+        }).collect(Collectors.toList());
+    }
+
     public void removeFromCart(int userId, int productId) {
         Cart cart = cartRepo.findByUserIdAndProductId(userId, productId);
         if (cart != null) {
             cartRepo.delete(cart);
         }
     }
+
+    public void updateQuantity(int userId, int productId, int quantity) {
+
+        Cart cart = cartRepo.findByUserIdAndProductId(userId, productId);
+
+        if (cart == null) {
+            throw new RuntimeException("Cart not found");
+        }
+
+        if (quantity <= 0) {
+            cartRepo.delete(cart);
+            return;
+        }
+
+        cart.setQuantity(quantity);
+        cartRepo.save(cart);
+    }
+
+    // ✅ FIX ADDED
+public void clearCart(int userId) {
+    List<Cart> carts = cartRepo.findByUserId(userId);
+    cartRepo.deleteAll(carts);
+}
 }

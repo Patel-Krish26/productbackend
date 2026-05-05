@@ -19,18 +19,31 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // ✅ REGISTER
+    // REGISTER
     public String register(User user) {
 
+        if (user.getEmail() == null || user.getPassword() == null) {
+            throw new RuntimeException("Email or password missing");
+        }
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("User already exists");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("USER");
+
+        if (user.getEmail().contains("admin")) {
+            user.setRole("ADMIN");
+        } else {
+            user.setRole("USER");
+        }
 
         userRepository.save(user);
 
-        return "User Registered";
+        return "Registered";
     }
 
-    // ✅ LOGIN
+    // LOGIN
     public String login(User loginUser) {
 
         User user = userRepository.findByEmail(loginUser.getEmail())
@@ -40,7 +53,10 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        // ✅ FIX HERE (ADD ROLE)
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+        return jwtUtil.generateToken(
+        user.getEmail(),
+        user.getRole(),
+        user.getId()
+);
     }
 }

@@ -24,7 +24,7 @@ public class AuthController {
     public String register(@RequestBody User user) {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("USER");
+        user.setRole(user.getEmail().contains("admin") ? "ADMIN" : "USER");
 
         userRepository.save(user);
 
@@ -41,6 +41,10 @@ public class AuthController {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+        return jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole(),
+                user.getId()   // IMPORTANT FIX
+        );
     }
 }

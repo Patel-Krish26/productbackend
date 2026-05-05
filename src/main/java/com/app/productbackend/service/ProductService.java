@@ -4,10 +4,9 @@ import com.app.productbackend.entity.Product;
 import com.app.productbackend.entity.ProductImage;
 import com.app.productbackend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import org.springframework.data.domain.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,57 +19,52 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // ✅ Dynamic path (works everywhere)
-    private final String uploadDir = System.getProperty("user.dir") + "/uploads/";
+    // =========================
+    // UPLOAD DIR
+    // =========================
+    private final String uploadDir =
+            System.getProperty("user.dir") + "/uploads/";
 
     // =========================
-    // 🔍 FILTER + PAGINATION
+    // GET ALL
     // =========================
-    public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
-
-        String nameFilter = (keyword == null || keyword.isBlank()) ? "" : keyword;
-        String categoryFilter = (category == null || category.isBlank()) ? "" : category;
-
-        Page<Product> page = productRepository
-                .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-                        nameFilter,
-                        categoryFilter,
-                        pageable
-                );
-
-        // ✅ prevent invalid page crash
-        if (pageable.getPageNumber() >= page.getTotalPages() && page.getTotalPages() > 0) {
-            Pageable newPage = PageRequest.of(page.getTotalPages() - 1, pageable.getPageSize());
-            return productRepository
-                    .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-                            nameFilter,
-                            categoryFilter,
-                            newPage
-                    );
-        }
-
-        return page;
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
     }
 
     // =========================
-    // 📄 PAGINATION
+    // PAGINATION
     // =========================
     public Page<Product> getProductsWithPagination(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
     // =========================
-    // ➕ CREATE PRODUCT
+    // FILTER
+    // =========================
+    public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
+
+        String nameFilter = (keyword == null) ? "" : keyword;
+        String categoryFilter = (category == null) ? "" : category;
+
+        return productRepository
+                .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
+                        nameFilter,
+                        categoryFilter,
+                        pageable
+                );
+    }
+
+    // =========================
+    // CREATE PRODUCT
     // =========================
     public Product saveProduct(Product product, List<MultipartFile> images) {
 
         try {
-            List<ProductImage> imageList = new ArrayList<>();
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
 
-            File directory = new File(uploadDir);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+            List<ProductImage> imageList = new ArrayList<>();
 
             if (images != null) {
                 for (MultipartFile file : images) {
@@ -79,8 +73,7 @@ public class ProductService {
 
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-                    File dest = new File(uploadDir + fileName);
-                    file.transferTo(dest);
+                    file.transferTo(new File(uploadDir + fileName));
 
                     ProductImage img = new ProductImage();
                     img.setImageUrl("/uploads/" + fileName);
@@ -91,50 +84,40 @@ public class ProductService {
             }
 
             product.setImages(imageList);
+
             return productRepository.save(product);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error saving product", e);
+            throw new RuntimeException("Product save failed: " + e.getMessage());
         }
     }
 
     // =========================
-    // ❌ DELETE
+    // UPDATE PRODUCT
     // =========================
-    public void deleteProduct(int id) {
-        productRepository.deleteById(id);
-    }
-
-    // =========================
-    // 🔄 UPDATE PRODUCT
-    // =========================
-    public Product updateProduct(int id,
-                                 String name,
-                                 String description,
-                                 double price,
-                                 String category,
-                                 int stock,
-                                 List<MultipartFile> images) {
+    public Product updateProduct(
+            int id,
+            String name,
+            String description,
+            double price,
+            String category,
+            int stock,
+            List<MultipartFile> images
+    ) {
 
         try {
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            // update fields
             product.setName(name);
             product.setDescription(description);
             product.setPrice(price);
             product.setCategory(category);
             product.setStock(stock);
 
-            // ✅ safe init
-            if (product.getImages() == null) {
-                product.setImages(new ArrayList<>());
-            }
-
             if (images != null && !images.isEmpty()) {
 
-                product.getImages().clear();
+                List<ProductImage> imageList = new ArrayList<>();
 
                 for (MultipartFile file : images) {
 
@@ -142,48 +125,53 @@ public class ProductService {
 
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-                    File dest = new File(uploadDir + fileName);
-                    file.transferTo(dest);
+                    file.transferTo(new File(uploadDir + fileName));
 
                     ProductImage img = new ProductImage();
                     img.setImageUrl("/uploads/" + fileName);
                     img.setProduct(product);
 
-                    product.getImages().add(img);
+                    imageList.add(img);
                 }
+
+                product.setImages(imageList);
             }
 
             return productRepository.save(product);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error updating product", e);
+            throw new RuntimeException("Update failed: " + e.getMessage());
         }
     }
 
     // =========================
-    // 🔍 SEARCH
+    // DELETE
+    // =========================
+    public void deleteProduct(int id) {
+        productRepository.deleteById(id);
+    }
+
+    // =========================
+    // SEARCH
     // =========================
     public List<Product> searchProducts(String keyword) {
+
         if (keyword == null || keyword.isBlank()) {
             return productRepository.findAll();
         }
+
         return productRepository.findByNameContainingIgnoreCase(keyword);
     }
 
     // =========================
-    // 📦 CATEGORY
+    // CATEGORY
     // =========================
     public List<Product> getByCategory(String category) {
+
         if (category == null || category.isBlank()) {
             return productRepository.findAll();
         }
-        return productRepository.findByCategoryIgnoreCase(category);
-    }
 
-    // =========================
-    // 📋 GET ALL
-    // =========================
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findByCategoryIgnoreCase(category);
     }
 }

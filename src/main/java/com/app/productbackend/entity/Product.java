@@ -33,7 +33,8 @@ public class Product {
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-        @JsonManagedReference
+    // 🔥 FIXED: force load images to avoid lazy loading issue in Orders
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<ProductImage> images;
 }

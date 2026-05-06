@@ -1,9 +1,8 @@
 package com.app.productbackend.security;
 
-import com.app.productbackend.security.JwtFilter;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -11,7 +10,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,31 +31,29 @@ public class SecurityConfig {
 
         http
             .csrf().disable()
+            .cors().configurationSource(corsConfigurationSource())
+            .and()
 
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
 
             .authorizeRequests()
 
-            // 🔥 ALLOW PRE-FLIGHT REQUESTS
+            // allow preflight
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-            // PUBLIC
+            // public APIs
             .antMatchers("/api/auth/**").permitAll()
             .antMatchers("/uploads/**").permitAll()
-
-            // PRODUCTS
             .antMatchers("/api/products/**").permitAll()
+
+            // admin
             .antMatchers("/api/products/admin/**").hasRole("ADMIN")
 
-            // CART
-            .antMatchers("/api/cart/**").hasAnyRole("USER", "ADMIN")
-
-            // ORDERS
-            .antMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
+            // cart + orders
+.antMatchers("/api/cart/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+.antMatchers("/api/orders/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
             .anyRequest().authenticated()
 
@@ -67,24 +63,14 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // =========================
-    // CORS CONFIG
-    // =========================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173"
-        ));
-
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
@@ -95,9 +81,6 @@ public class SecurityConfig {
         return source;
     }
 
-    // =========================
-    // PASSWORD ENCODER
-    // =========================
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

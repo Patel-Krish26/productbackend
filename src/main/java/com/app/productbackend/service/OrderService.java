@@ -5,6 +5,7 @@ import com.app.productbackend.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,58 +25,65 @@ public class OrderService {
     // =========================
     // 🧾 PLACE ORDER
     // =========================
-    public Order placeOrder(int userId) {
+  @Transactional
+public Order placeOrder(int userId) {
 
-        List<Cart> cartItems = cartRepository.findByUserId(userId);
+    List<Cart> cartItems = cartRepository.findByUserId(userId);
 
-        if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+    // ✅ SAFE NULL + EMPTY CHECK
+    if (cartItems == null || cartItems.isEmpty()) {
+        throw new IllegalStateException("Cart is empty");
+    }
+
+    Order order = new Order();
+    order.setUserId(userId);
+    order.setStatus("PENDING");
+
+    List<OrderItem> items = new ArrayList<>();
+    double total = 0;
+
+    for (Cart cart : cartItems) {
+
+        // ✅ SAFE PRODUCT FETCH
+        Product p = productRepository.findById(cart.getProduct().getId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Product not found: " + cart.getProduct().getId()
+                ));
+
+        OrderItem item = new OrderItem();
+        item.setProductId(p.getId());
+        item.setProductName(p.getName());
+        item.setPrice(p.getPrice());
+        item.setQuantity(cart.getQuantity());
+        item.setOrder(order);
+
+        // ✅ SAFE IMAGE HANDLING (NO CRASH)
+        String imageUrl = "/uploads/default.png";
+
+        try {
+            if (p.getImages() != null && !p.getImages().isEmpty()) {
+                imageUrl = p.getImages().get(0).getImageUrl();
+            }
+        } catch (Exception e) {
+            imageUrl = "/uploads/default.png";
         }
 
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setStatus("PENDING");
+        item.setImageUrl(imageUrl);
 
-        List<OrderItem> items = new ArrayList<>();
-        double total = 0;
-
-            for (Cart cart : cartItems) {
-
-                Product p = productRepository.findById(cart.getProduct().getId())
-                        .orElseThrow(() -> new RuntimeException("Product not found"));
-
-                // 🔥 FORCE LOAD IMAGES (CRITICAL)
-                if (p.getImages() != null) {
-                    p.getImages().size();
-                }
-
-                OrderItem item = new OrderItem();
-                item.setProductId(p.getId());
-                item.setProductName(p.getName());
-                item.setPrice(p.getPrice());
-                item.setQuantity(cart.getQuantity());
-                item.setOrder(order);
-
-                item.setImageUrl(
-                    (p.getImages() != null && !p.getImages().isEmpty())
-                        ? p.getImages().get(0).getImageUrl()
-                        : "/uploads/default.png"
-                );
-
-                total += p.getPrice() * cart.getQuantity();
-                items.add(item);
-            }
-
-        order.setItems(items);
-        order.setTotalAmount(total);
-
-        Order savedOrder = orderRepository.save(order);
-
-        // 🧹 CLEAR CART AFTER ORDER
-        cartRepository.deleteAll(cartItems);
-
-        return savedOrder;
+        total += p.getPrice() * cart.getQuantity();
+        items.add(item);
     }
+
+    order.setItems(items);
+    order.setTotalAmount(total);
+
+    Order savedOrder = orderRepository.save(order);
+
+    // ✅ CLEAR CART SAFELY
+    cartRepository.deleteAll(cartItems);
+
+    return savedOrder;
+}
 
     // =========================
     // 📦 USER ORDER HISTORY

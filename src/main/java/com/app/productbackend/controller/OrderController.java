@@ -18,10 +18,14 @@ public class OrderController {
     // =========================
     // 🧾 PLACE ORDER (USER)
     // =========================
-    @PostMapping("/place")
-    public Order placeOrder(@RequestParam int userId) {
-        return orderService.placeOrder(userId);
+@PostMapping("/place")
+public ResponseEntity<?> placeOrder(@RequestParam int userId) {
+    try {
+        return ResponseEntity.ok(orderService.placeOrder(userId));
+    } catch (IllegalStateException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     // =========================
     // 📦 USER ORDER HISTORY

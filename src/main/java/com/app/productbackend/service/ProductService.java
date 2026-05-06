@@ -136,30 +136,35 @@ public class ProductService {
     // =========================
     // IMAGE SAVE
     // =========================
-    private void saveImages(Product product, List<MultipartFile> images) throws Exception {
+ private void saveImages(Product product, List<MultipartFile> images) throws Exception {
 
-        File dir = new File(uploadDir);
-        if (!dir.exists()) dir.mkdirs();
+    if (images == null || images.isEmpty()) return; // ✅ add this
 
-        List<ProductImage> imageList = new ArrayList<>();
+    File dir = new File(uploadDir);
+    if (!dir.exists()) dir.mkdirs();
 
-        for (MultipartFile file : images) {
+    List<ProductImage> imageList = new ArrayList<>();
 
-            if (file == null || file.isEmpty()) continue;
+    for (MultipartFile file : images) {
 
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        if (file == null || file.isEmpty()) continue;
 
-            file.transferTo(new File(uploadDir + fileName));
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-            ProductImage img = new ProductImage();
-            img.setImageUrl("/uploads/" + fileName);
-            img.setProduct(product);
+        file.transferTo(new File(uploadDir + fileName));
 
-            imageList.add(img);
-        }
+        ProductImage img = new ProductImage();
+        img.setImageUrl("/uploads/" + fileName);
+        img.setProduct(product);
 
-        product.setImages(imageList);
+        imageList.add(img);
     }
+
+    // 🔥 THIS WAS MISSING
+    imageRepository.saveAll(imageList);
+
+    product.setImages(imageList);
+}
 
     // =========================
     // DELETE

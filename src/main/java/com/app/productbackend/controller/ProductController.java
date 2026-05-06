@@ -5,12 +5,12 @@ import com.app.productbackend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,9 +21,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // =========================
-    // PUBLIC APIs
-    // =========================
+    // ================= PUBLIC =================
 
     @GetMapping
     public List<Product> getAllProducts() {
@@ -35,16 +33,6 @@ public class ProductController {
         return productService.getProductsWithPagination(pageable);
     }
 
-    @GetMapping("/search")
-    public List<Product> search(@RequestParam String keyword) {
-        return productService.searchProducts(keyword);
-    }
-
-    @GetMapping("/category")
-    public List<Product> getByCategory(@RequestParam String name) {
-        return productService.getByCategory(name);
-    }
-
     @GetMapping("/filter")
     public Page<Product> filterProducts(
             @RequestParam(required = false) String keyword,
@@ -54,9 +42,7 @@ public class ProductController {
         return productService.filterProducts(keyword, category, pageable);
     }
 
-    // =========================
-    // ADMIN APIs 🔐
-    // =========================
+    // ================= ADMIN =================
 
     @PostMapping(value = "/admin/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
@@ -67,7 +53,6 @@ public class ProductController {
             @RequestParam int stock,
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
-
         Product product = new Product();
 
         product.setName(name);
@@ -90,16 +75,16 @@ public class ProductController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
 
-        Product updatedProduct = productService.updateProduct(
+        Product updated = productService.updateProduct(
                 id, name, description, price, category, stock, images
         );
 
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable int id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok("Deleted successfully");
+        return ResponseEntity.ok("Deleted");
     }
 }

@@ -21,7 +21,9 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // ================= PUBLIC =================
+    // =========================
+    // PUBLIC APIs
+    // =========================
 
     @GetMapping
     public List<Product> getAllProducts() {
@@ -42,7 +44,9 @@ public class ProductController {
         return productService.filterProducts(keyword, category, pageable);
     }
 
-    // ================= ADMIN =================
+    // =========================
+    // CREATE
+    // =========================
 
     @PostMapping(value = "/admin/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
@@ -53,16 +57,12 @@ public class ProductController {
             @RequestParam int stock,
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
-        Product product = new Product();
-
-        product.setName(name);
-        product.setDescription(description);
-        product.setPrice(price);
-        product.setCategory(category);
-        product.setStock(stock);
-
-        return productService.saveProduct(product, images);
+        return productService.saveProduct(name, description, price, category, stock, images);
     }
+
+    // =========================
+    // UPDATE
+    // =========================
 
     @PutMapping(value = "/admin/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
@@ -72,17 +72,20 @@ public class ProductController {
             @RequestParam double price,
             @RequestParam String category,
             @RequestParam int stock,
-            @RequestParam(value = "replaceImages", defaultValue = "false") boolean replaceImages, // ✅ ADD THIS
+            @RequestParam(value = "replaceImages", defaultValue = "false") boolean replaceImages,
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
 
-        Product updatedProduct = productService.updateProduct(
+        Product updated = productService.updateProduct(
                 id, name, description, price, category, stock, images, replaceImages
         );
 
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(updated);
     }
 
+    // =========================
+    // DELETE
+    // =========================
 
     @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable int id) {

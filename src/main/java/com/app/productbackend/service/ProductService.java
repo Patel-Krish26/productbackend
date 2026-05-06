@@ -2,12 +2,13 @@ package com.app.productbackend.service;
 
 import com.app.productbackend.entity.Product;
 import com.app.productbackend.entity.ProductImage;
-import com.app.productbackend.repository.ProductRepository;
 import com.app.productbackend.repository.ImageRepository;
+import com.app.productbackend.repository.ProductRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // ✅ IMPORTANT
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Transactional // ✅🔥 CRITICAL FIX (solves your 500 error)
 public class ProductService {
 
     @Autowired
@@ -23,10 +25,11 @@ public class ProductService {
     @Autowired
     private ImageRepository imageRepository;
 
-    private final String uploadDir =
-            System.getProperty("user.dir") + "/uploads/";
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/";
 
-    // ================= GET =================
+    // =========================
+    // GET ALL
+    // =========================
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
@@ -35,62 +38,63 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
-    // ================= FILTER =================
     public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
 
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasCategory = category != null && !category.isBlank();
 
-        if (hasKeyword && hasCategory)
-            return productRepository
-                    .findByNameContainingIgnoreCaseAndCategoryIgnoreCase(keyword, category, pageable);
+        if (hasKeyword && hasCategory) {
+            return productRepository.findByNameContainingIgnoreCaseAndCategoryIgnoreCase(keyword, category, pageable);
+        }
 
-        if (hasKeyword)
+        if (hasKeyword) {
             return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
 
-        if (hasCategory)
+        if (hasCategory) {
             return productRepository.findByCategoryIgnoreCase(category, pageable);
+        }
 
         return productRepository.findAll(pageable);
     }
 
-    // ================= CREATE =================
-    public Product saveProduct(Product product, List<MultipartFile> images) {
+    // =========================
+    // CREATE
+    // =========================
+    public Product saveProduct(
+            String name,
+            String description,
+            double price,
+            String category,
+            int stock,
+            List<MultipartFile> images
+    ) {
 
         try {
-            File dir = new File(uploadDir);
-            if (!dir.exists()) dir.mkdirs();
+            Product product = new Product();
 
-            List<ProductImage> imageList = new ArrayList<>();
-
-            if (images != null) {
-                for (MultipartFile file : images) {
-
-                    if (file == null || file.isEmpty()) continue;
-
-                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    file.transferTo(new File(uploadDir + fileName));
-
-                    ProductImage img = new ProductImage();
-                    img.setImageUrl("/uploads/" + fileName);
-                    img.setProduct(product);
-
-                    imageList.add(img);
-                }
-            }
-
-            product.setImages(imageList);
+            product.setName(name);
+            product.setDescription(description);
+            product.setPrice(price);
+            product.setCategory(category);
+            product.setStock(stock);
             product.setCreatedAt(LocalDateTime.now());
 
-            return productRepository.save(product);
+            product = productRepository.save(product);
+
+            saveImages(product, images);
+
+            return product;
 
         } catch (Exception e) {
-            throw new RuntimeException("Save failed: " + e.getMessage());
+            throw new RuntimeException("Create failed: " + e.getMessage());
         }
     }
 
-    // ================= UPDATE (🔥 FIXED) =================
-        public Product updateProduct(
+    // =========================
+    // UPDATE
+    // =========================
+    public Product updateProduct(
             int id,
             String name,
             String description,
@@ -98,26 +102,41 @@ public class ProductService {
             String category,
             int stock,
             List<MultipartFile> images,
-            boolean replaceImages // ✅ ADD
+            boolean replaceImages
     ) {
 
         try {
             Product product = productRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    product.setName(name);
-    product.setDescription(description);
-    product.setPrice(price);
-    product.setCategory(category);
-    product.setStock(stock);
+            product.setName(name);
+            product.setDescription(description);
+            product.setPrice(price);
+            product.setCategory(category);
+            product.setStock(stock);
 
-    // ✅ DELETE OLD IMAGES IF FLAG TRUE
-    if (replaceImages) {
-        imageRepository.deleteByProductId(id);
+            // ✅ DELETE OLD IMAGES (NOW WORKS — transaction active)
+            if (replaceImages) {
+                imageRepository.deleteByProductId(id);
+            }
+
+            // ✅ SAVE NEW IMAGES
+            if (images != null && !images.isEmpty()) {
+                saveImages(product, images);
+            }
+
+            return productRepository.save(product);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Update failed: " + e.getMessage());
+        }
     }
 
-    // ✅ ADD NEW IMAGES
-    if (images != null && !images.isEmpty()) {
+    // =========================
+    // IMAGE SAVE
+    // =========================
+    private void saveImages(Product product, List<MultipartFile> images) throws Exception {
 
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
@@ -142,30 +161,11 @@ public class ProductService {
         product.setImages(imageList);
     }
 
-    return productRepository.save(product);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Update failed: " + e.getMessage());
-        }
-    }
-
-
-    // ================= DELETE =================
+    // =========================
+    // DELETE
+    // =========================
     public void deleteProduct(int id) {
-
-        // delete images from disk
-        List<ProductImage> images = imageRepository.findAll()
-                .stream()
-                .filter(img -> img.getProduct().getId() == id)
-                .collect(java.util.stream.Collectors.toList());
-
-        for (ProductImage img : images) {
-            try {
-                File file = new File(System.getProperty("user.dir") + img.getImageUrl());
-                if (file.exists()) file.delete();
-            } catch (Exception ignored) {}
-        }
-
+        imageRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
 }

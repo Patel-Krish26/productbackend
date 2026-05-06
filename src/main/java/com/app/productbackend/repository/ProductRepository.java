@@ -4,24 +4,49 @@ import com.app.productbackend.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
+    // =========================
     // 🔍 SEARCH
+    // =========================
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    // 📦 FILTER
+    // =========================
+    // 📦 CATEGORY
+    // =========================
     List<Product> findByCategoryIgnoreCase(String category);
 
-    // 🔥 SEARCH + FILTER (NON-PAGED)
-    List<Product> findByNameContainingIgnoreCaseAndCategoryIgnoreCase(String name, String category);
+    // =========================
+    // 🔥 SEARCH + CATEGORY (NON-PAGED)
+    // =========================
+    List<Product> findByNameContainingIgnoreCaseAndCategoryIgnoreCase(
+            String name,
+            String category
+    );
 
-    // 🔥 PAGINATION + FILTER
-    Page<Product> findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
+    // =========================
+    // 🔥 PAGINATION (SEARCH)
+    // =========================
+    Page<Product> findByNameContainingIgnoreCase(
+            String name,
+            Pageable pageable
+    );
+
+    // =========================
+    // 🔥 PAGINATION (CATEGORY)
+    // =========================
+    Page<Product> findByCategoryIgnoreCase(
+            String category,
+            Pageable pageable
+    );
+
+    // =========================
+    // 🔥 PAGINATION (SEARCH + CATEGORY)
+    // =========================
+    Page<Product> findByNameContainingIgnoreCaseAndCategoryIgnoreCase(
             String name,
             String category,
             Pageable pageable

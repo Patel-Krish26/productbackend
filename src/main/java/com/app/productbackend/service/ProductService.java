@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -40,19 +39,29 @@ public class ProductService {
     }
 
     // =========================
-    // FILTER
+    // FILTER (FIXED LOGIC)
     // =========================
     public Page<Product> filterProducts(String keyword, String category, Pageable pageable) {
 
-        String nameFilter = (keyword == null) ? "" : keyword;
-        String categoryFilter = (category == null) ? "" : category;
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasCategory = category != null && !category.isBlank();
 
-        return productRepository
-                .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-                        nameFilter,
-                        categoryFilter,
-                        pageable
-                );
+        if (hasKeyword && hasCategory) {
+            return productRepository
+                    .findByNameContainingIgnoreCaseAndCategoryIgnoreCase(keyword, category, pageable);
+        }
+
+        if (hasKeyword) {
+            return productRepository
+                    .findByNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        if (hasCategory) {
+            return productRepository
+                    .findByCategoryIgnoreCase(category, pageable);
+        }
+
+        return productRepository.findAll(pageable);
     }
 
     // =========================
@@ -84,6 +93,9 @@ public class ProductService {
             }
 
             product.setImages(imageList);
+
+            // ✅ ensure createdAt always set
+            product.setCreatedAt(LocalDateTime.now());
 
             return productRepository.save(product);
 

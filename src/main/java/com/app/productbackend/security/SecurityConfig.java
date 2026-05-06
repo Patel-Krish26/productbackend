@@ -26,14 +26,27 @@ public class SecurityConfig {
             .csrf().disable()
             .cors().and()
 
-        .authorizeRequests()
+            .authorizeRequests()
 
+            // ================= PUBLIC =================
             .antMatchers("/api/auth/**").permitAll()
-            .antMatchers("/api/products/**").permitAll()
             .antMatchers("/uploads/**").permitAll()
 
+            // ================= PRODUCTS =================
+            // PUBLIC READ
+            .antMatchers("/api/products").permitAll()
+            .antMatchers("/api/products/paged").permitAll()
+            .antMatchers("/api/products/search").permitAll()
+            .antMatchers("/api/products/filter").permitAll()
+            .antMatchers("/api/products/category").permitAll()
+
+            // ADMIN ONLY (🔥 IMPORTANT)
+            .antMatchers("/api/products/admin/**").hasRole("ADMIN")
+
+            // ================= CART =================
             .antMatchers("/api/cart/**").hasAnyRole("USER", "ADMIN")
 
+            // ================= ORDERS =================
             .antMatchers("/api/orders/all").hasRole("ADMIN")
             .antMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
 

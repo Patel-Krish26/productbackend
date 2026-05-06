@@ -72,15 +72,17 @@ public class ProductController {
             @RequestParam double price,
             @RequestParam String category,
             @RequestParam int stock,
+            @RequestParam(value = "replaceImages", defaultValue = "false") boolean replaceImages, // ✅ ADD THIS
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
 
-        Product updated = productService.updateProduct(
-                id, name, description, price, category, stock, images
+        Product updatedProduct = productService.updateProduct(
+                id, name, description, price, category, stock, images, replaceImages
         );
 
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(updatedProduct);
     }
+
 
     @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable int id) {

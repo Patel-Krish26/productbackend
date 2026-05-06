@@ -90,72 +90,65 @@ public class ProductService {
     }
 
     // ================= UPDATE (🔥 FIXED) =================
-    public Product updateProduct(
+        public Product updateProduct(
             int id,
             String name,
             String description,
             double price,
             String category,
             int stock,
-            List<MultipartFile> images
+            List<MultipartFile> images,
+            boolean replaceImages // ✅ ADD
     ) {
 
         try {
             Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Not found"));
+        .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            product.setName(name);
-            product.setDescription(description);
-            product.setPrice(price);
-            product.setCategory(category);
-            product.setStock(stock);
+    product.setName(name);
+    product.setDescription(description);
+    product.setPrice(price);
+    product.setCategory(category);
+    product.setStock(stock);
 
-            // 🔥 IF NEW IMAGES → DELETE OLD FIRST
-            if (images != null && !images.isEmpty()) {
+    // ✅ DELETE OLD IMAGES IF FLAG TRUE
+    if (replaceImages) {
+        imageRepository.deleteByProductId(id);
+    }
 
-                // get old images
-                List<ProductImage> oldImages = imageRepository.findAll()
-                        .stream()
-                        .filter(img -> img.getProduct().getId() == id)
-                        .toList();
+    // ✅ ADD NEW IMAGES
+    if (images != null && !images.isEmpty()) {
 
-                // delete files from disk
-                for (ProductImage img : oldImages) {
-                    try {
-                        File file = new File(System.getProperty("user.dir") + img.getImageUrl());
-                        if (file.exists()) file.delete();
-                    } catch (Exception ignored) {}
-                }
+        File dir = new File(uploadDir);
+        if (!dir.exists()) dir.mkdirs();
 
-                // delete from DB
-                imageRepository.deleteByProductId(id);
+        List<ProductImage> imageList = new ArrayList<>();
 
-                // save new images
-                List<ProductImage> newImages = new ArrayList<>();
+        for (MultipartFile file : images) {
 
-                for (MultipartFile file : images) {
+            if (file == null || file.isEmpty()) continue;
 
-                    if (file == null || file.isEmpty()) continue;
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    file.transferTo(new File(uploadDir + fileName));
+            file.transferTo(new File(uploadDir + fileName));
 
-                    ProductImage img = new ProductImage();
-                    img.setImageUrl("/uploads/" + fileName);
-                    img.setProduct(product);
+            ProductImage img = new ProductImage();
+            img.setImageUrl("/uploads/" + fileName);
+            img.setProduct(product);
 
-                    newImages.add(img);
-                }
+            imageList.add(img);
+        }
 
-                product.setImages(newImages);
-            }
+        product.setImages(imageList);
+    }
 
-            return productRepository.save(product);
+    return productRepository.save(product);
 
         } catch (Exception e) {
             throw new RuntimeException("Update failed: " + e.getMessage());
         }
     }
+
 
     // ================= DELETE =================
     public void deleteProduct(int id) {
@@ -164,7 +157,7 @@ public class ProductService {
         List<ProductImage> images = imageRepository.findAll()
                 .stream()
                 .filter(img -> img.getProduct().getId() == id)
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
 
         for (ProductImage img : images) {
             try {
